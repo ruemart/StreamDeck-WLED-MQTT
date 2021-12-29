@@ -2,7 +2,7 @@
   "Actions": [
     {
       "Icon": "Images/icon",
-      "Name": "TODO_ENTER_NAME_OF_ACTION",
+      "Name": "Change Color",
       "States": [
         {
           "Image": "Images/pluginAction",
@@ -10,20 +10,50 @@
           "FontSize": "12"
         }
       ],
-      "SupportedInMultiActions": false,
-      "Tooltip": "TODO_ENTER_TOOLTIP",
-      "UUID": "WLED_MQTT.pluginaction",
-      "PropertyInspectorPath": "PropertyInspector/PluginActionPI.html"
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change the color of the WLED light",
+      "UUID": "com.ruemart.wledmqtt.changecolor",
+      "PropertyInspectorPath": "PropertyInspector/ChangeColor.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Change Effect",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Change the effect of the WLED light",
+      "UUID": "com.ruemart.wledmqtt.changefx",
+      "PropertyInspectorPath": "PropertyInspector/ChangeFx.html"
+    },
+    {
+      "Icon": "Images/icon",
+      "Name": "Toggle Light",
+      "States": [
+        {
+          "Image": "Images/pluginAction",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "Turn the WLED light on/off",
+      "UUID": "com.ruemart.wledmqtt.togglelight",
+      "PropertyInspectorPath": "PropertyInspector/ToggleLight.html"
     }
   ],
-  "Author": "TODO_ENTER_YOUR_NAME",
+  "Author": "Ruemart",
   "Name": "WLED-MQTT",
-  "Description": "TODO_ENTER_PLUGIN_DESCRIPTION",
+  "Description": "Control your WLED light via MQTT and Stream Deck",
   "Icon": "Images/pluginIcon",
-  "URL": "TODO_ENTER_YOUR_HOMEPAGE",
+  "URL": "https://www.google.com",
   "Version": "1.0",
-  "CodePath": "WLED_MQTT",
-  "Category": "Custom",
+  "CodePath": "com.ruemart.wledmqtt",
+  "Category": "WLED MQTT",
   "CategoryIcon": "Images/categoryIcon",
   "OS": [
     {

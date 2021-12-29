@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>Change WLED Effect</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/rangeTooltip.css">
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdtools.common.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/rangeTooltip.js"></script>
+    <script src="ChangeFx.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label">Connection Type*</div>
+            <select class="sdpi-item-value select sdProperty" id="connectionType" oninput="setSettings()">
+                <option value="0">TCP</option>
+                <option value="1">SecureTCP</option>
+                <option value="2">SecureTCP with Certificate</option>
+                <option value="3">WebSockets</option>
+            </select>
+        </div>
+        <div id="dvCertificateSettings" style="display:none">
+            <div class="sdpi-item" id="dvCertificateFile">
+                <div class="sdpi-item-label">Certificate*</div>
+                <div class="sdpi-item-group file" id="filepickergroup">
+                    <input class="sdpi-item-value sdProperty sdFile" type="file" id="certificateFile" accept=".pfx" oninput="setSettings()">
+                    <label class="sdpi-file-info " for="certificateFile" id="certificateFileName">No cert...</label>
+                    <label class="sdpi-file-label" for="certificateFile">Choose cert...</label>
+                </div>
+            </div>
+        </div>
+        <div id="dvWebSocketSettings" style="display:none">
+            <div class="sdpi-item" id="dvWebSocketAdress">
+                <div class="sdpi-item-label">Web Socket Server Adress*</div>
+                <input class="sdProperty" id="webSocketServerAdress" oninput="setSettings()">
+            </div>
+        </div>
+        <hr />
+        <div class="sdpi-item" id="dvHost">
+            <div class="sdpi-item-label">Host*</div>
+            <input class="sdProperty" id="host" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvPort">
+            <div class="sdpi-item-label">Port</div>
+            <input class="sdpi-item-value sdProperty" placeholder="1883" value="" id="port" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvCommunicationTimeout">
+            <div class="sdpi-item-label">Communication Timeout</div>
+            <input class="sdpi-item-value sdProperty" placeholder="0" value="" id="communicationTimeout" oninput="setSettings()">
+        </div>
+        <hr />
+        <div class="sdpi-item" id="dvUser">
+            <div class="sdpi-item-label">Username</div>
+            <input class="sdProperty" id="user" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvPassword">
+            <div class="sdpi-item-label">Password</div>
+            <input class="sdProperty" id="password" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvClientId">
+            <div class="sdpi-item-label">ClientID</div>
+            <input class="sdProperty" id="clientId" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvTryConnection">
+            <div class="sdpi-item-label empty"></div>
+            <button class="sdpi-item-value" onclick="tryConnection()">Try Connection</button>
+        </div>
+        <details class="message">
+            <span id="spConnectionResult"></span>
+        </details>
+        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
+
+    </div>
+</body>
+</html>
