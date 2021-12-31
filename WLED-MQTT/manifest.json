@@ -1,11 +1,11 @@
 {
   "Actions": [
     {
-      "Icon": "Images/icon",
+      "Icon": "Images/ColorAction",
       "Name": "Change Color",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/ColorOffline",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -16,11 +16,11 @@
       "PropertyInspectorPath": "PropertyInspector/ChangeColor.html"
     },
     {
-      "Icon": "Images/icon",
+      "Icon": "Images/EffectAction",
       "Name": "Change Effect",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/EffectOffline",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -31,11 +31,11 @@
       "PropertyInspectorPath": "PropertyInspector/ChangeFx.html"
     },
     {
-      "Icon": "Images/icon",
+      "Icon": "Images/ToggleAction",
       "Name": "Toggle Light",
       "States": [
         {
-          "Image": "Images/pluginAction",
+          "Image": "Images/ToggleOffline",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -49,12 +49,12 @@
   "Author": "Ruemart",
   "Name": "WLED-MQTT",
   "Description": "Control your WLED light via MQTT and Stream Deck",
-  "Icon": "Images/pluginIcon",
+  "Icon": "Images/ShopIcon",
   "URL": "https://www.google.com",
   "Version": "1.0",
   "CodePath": "com.ruemart.wledmqtt",
   "Category": "WLED MQTT",
-  "CategoryIcon": "Images/categoryIcon",
+  "CategoryIcon": "Images/CategoryIcon",
   "OS": [
     {
       "Platform": "windows",
