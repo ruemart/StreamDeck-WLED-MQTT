@@ -7,11 +7,11 @@
     <ProjectGuid>{4635D874-69C0-4010-BE46-77EF92EB1553}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>WLED_MQTT</RootNamespace>
-    <AssemblyName>WLED-MQTT</AssemblyName>
+    <AssemblyName>com.ruemart.wledmqtt</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\WLED_MQTT.sdPlugin\</OutputPath>
+    <OutputPath>bin\Debug\com.ruemart.wledmqtt.sdPlugin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,7 +29,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\WLED_MQTT.sdPlugin\</OutputPath>
+    <OutputPath>bin\Release\com.ruemart.wledmqtt.sdPlugin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -79,14 +79,16 @@
     <Compile Include="Actions\BaseMqttAction.cs" />
     <Compile Include="Actions\ChangeFxAction.cs" />
     <Compile Include="Actions\ToggleLightAction.cs" />
+    <Compile Include="BaseSettings.cs" />
     <Compile Include="Mqtt\ConnectionType.cs" />
     <Compile Include="Mqtt\MqttClient.cs" />
     <Compile Include="Mqtt\MqttClientStatusChangedEventHandler.cs" />
     <Compile Include="Mqtt\MqttStatus.cs" />
-    <Compile Include="BasePluginSettings.cs" />
+    <Compile Include="GlobalPluginSettings.cs" />
     <Compile Include="Actions\ChangeColorAction.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WledEffect.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -140,4 +142,8 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

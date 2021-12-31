@@ -1,24 +1,21 @@
 ﻿using BarRaider.SdTools;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Threading.Tasks;
 using WLED_MQTT.Mqtt;
 
 namespace WLED_MQTT.Actions
 {
-    public abstract class BaseMqttAction<TSettings> : PluginBase where TSettings : BasePluginSettings, new()
+    public abstract class BaseMqttAction<TSettings> : PluginBase where TSettings : BaseSettings
     {
+        protected MqttClient mqttClient;
+        protected GlobalPluginSettings globalSettings;
         protected TSettings settings;
-
-        protected readonly MqttClient mqttClient;
 
         public BaseMqttAction(ISDConnection connection, InitialPayload payload) : base(connection, payload)
         {
-            mqttClient = new MqttClient();
-            mqttClient.StatusChanged += OnMqttClientStatusChanged;
-            mqttClient.StartMqttClientAsync(settings);
+            
         }
-
-        protected virtual void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e) { }
 
         public override void Dispose()
         {
@@ -27,17 +24,81 @@ namespace WLED_MQTT.Actions
             mqttClient.Dispose();
         }
 
-        public override async void ReceivedSettings(ReceivedSettingsPayload payload)
+        public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) 
         {
-            Tools.AutoPopulateSettings(settings, payload.Settings);
-            await mqttClient.StopMqttClientAsync();
-            await mqttClient.StartMqttClientAsync(settings);
-            await SaveSettings();
+            if (payload?.Settings != null && payload.Settings.Count > 0)
+            {
+                globalSettings = payload.Settings.ToObject<GlobalPluginSettings>();
+            }
+            else
+            {
+                Logger.Instance.LogMessage(TracingLevel.WARN, $"No global settings found, creating new object");
+                globalSettings = new GlobalPluginSettings();
+                await SaveGlobalSettings();
+            }
+            await SetDefaultGlobalValues();
+
+            if(mqttClient == null)
+            {
+                if(string.IsNullOrEmpty(settings.ClientId))
+                {
+                    settings.ClientId = Guid.NewGuid().ToString();
+                    await SaveSettings();
+                }
+
+                await SetupMqtt();
+            }
+            else
+            {
+                await mqttClient.StopMqttClientAsync();
+            }
+
+            await mqttClient.StartMqttClientAsync(globalSettings, settings.ClientId);
         }
 
-        protected Task SaveSettings()
+        protected async Task SetDefaultGlobalValues()
         {
-            return Connection.SetSettingsAsync(JObject.FromObject(settings));
+            var needsToSave = false;
+            if (string.IsNullOrWhiteSpace(globalSettings.Host))
+            {
+                globalSettings.Host = "localhost";
+                needsToSave = true;
+            }
+
+            if (globalSettings.CommunicationTimeout < 0)
+            {
+                globalSettings.CommunicationTimeout = 0;
+                needsToSave = true;
+            }
+
+            if (globalSettings.Port < 1025 || globalSettings.Port > 65535)
+            {
+                globalSettings.Port = 1883;
+                needsToSave = true;
+            }
+
+            if(needsToSave)
+            {
+                await SaveGlobalSettings();
+            }
         }
+
+
+        protected Task SaveGlobalSettings()
+        {
+            return Connection.SetGlobalSettingsAsync(JObject.FromObject(globalSettings));
+        }
+
+        protected virtual void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e) { }
+
+        protected abstract Task SaveSettings();
+
+        private async Task SetupMqtt()
+        {
+            mqttClient = new MqttClient();
+            mqttClient.StatusChanged += OnMqttClientStatusChanged;
+            await mqttClient.StartMqttClientAsync(globalSettings, settings.ClientId);
+        }
+
     }
 }

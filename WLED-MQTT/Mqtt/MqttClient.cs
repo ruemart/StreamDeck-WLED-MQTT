@@ -1,15 +1,15 @@
-﻿using MQTTnet.Client.Connecting;
+﻿using MQTTnet;
+using MQTTnet.Client;
+using MQTTnet.Client.Connecting;
 using MQTTnet.Client.Disconnecting;
 using MQTTnet.Client.Options;
-using MQTTnet.Client;
+using MQTTnet.Client.Publishing;
 using MQTTnet.Extensions.ManagedClient;
-using MQTTnet;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using MQTTnet.Client.Publishing;
 
 namespace WLED_MQTT.Mqtt
 {
@@ -39,7 +39,7 @@ namespace WLED_MQTT.Mqtt
         /// <param name="args"></param>
         private void MqttClientDisconnected(MqttClientDisconnectedEventArgs args)
         {
-            if(mqttClient.IsStarted)
+            if (mqttClient.IsStarted)
             {
                 mqttClient.StopAsync();
             }
@@ -77,30 +77,31 @@ namespace WLED_MQTT.Mqtt
         /// Starts the MQTT client if it is not running.
         /// </summary>
         /// <param name="settings">Setting used to configure the MQTT client.</param>
-        public Task StartMqttClientAsync(BasePluginSettings settings)
+        /// <param name="clientId">The id of the client to create.</param>
+        public async Task StartMqttClientAsync(GlobalPluginSettings settings, string clientId)
         {
-            if(mqttClient.IsStarted || mqttClient.IsConnected)
+            if (mqttClient.IsStarted || mqttClient.IsConnected)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             Status = MqttStatus.Connecting;
             StatusChanged?.Invoke(this, new MqttClientStatusChangedEventHandler { NewStatus = Status });
 
-            return mqttClient.StartAsync(BuildMqttClientOptions(settings));
+            await mqttClient.StartAsync(BuildMqttClientOptions(settings, clientId));
         }
 
         /// <summary>
         /// Stops the MQTT client if it is running.
         /// </summary>
-        public Task StopMqttClientAsync()
+        public async Task StopMqttClientAsync()
         {
             if (!mqttClient.IsStarted || !mqttClient.IsConnected)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            return mqttClient.StopAsync();
+            await mqttClient.StopAsync();
         }
 
         /// <summary>
@@ -118,7 +119,7 @@ namespace WLED_MQTT.Mqtt
             return mqttClient.PublishAsync(mqttMessage).ContinueWith(task => task.Result.ReasonCode == MqttClientPublishReasonCode.Success);
         }
 
-        private ManagedMqttClientOptions BuildMqttClientOptions(BasePluginSettings settings)
+        private ManagedMqttClientOptions BuildMqttClientOptions(GlobalPluginSettings settings, string clientId)
         {
             var clientOptions = new MqttClientOptionsBuilder();
             switch (settings.ConnectionType)
@@ -129,17 +130,6 @@ namespace WLED_MQTT.Mqtt
                 case ConnectionType.SecureTCP:
                     clientOptions.WithTcpServer(settings.Host, settings.Port).WithTls();
                     break;
-                case ConnectionType.SecureTCPWithCertificate:
-                    clientOptions.WithTcpServer(settings.Host, settings.Port)
-                        .WithTls(new MqttClientOptionsBuilderTlsParameters
-                        {
-                            UseTls = true,
-                            Certificates = new List<X509Certificate>
-                            {
-                                new X509Certificate(settings.CertificateFile),
-                            },
-                        });
-                    break;
                 case ConnectionType.WebSockets:
                     clientOptions.WithWebSocketServer(settings.WebSocketServerAdress);
                     break;
@@ -148,9 +138,9 @@ namespace WLED_MQTT.Mqtt
             {
                 clientOptions.WithCommunicationTimeout(new TimeSpan(0, 0, settings.CommunicationTimeout));
             }
-            if (!string.IsNullOrWhiteSpace(settings.ClientId))
+            if (!string.IsNullOrWhiteSpace(clientId))
             {
-                clientOptions.WithClientId(settings.ClientId);
+                clientOptions.WithClientId(clientId);
             }
             if (!string.IsNullOrWhiteSpace(settings.User) && !string.IsNullOrWhiteSpace(settings.Password))
             {

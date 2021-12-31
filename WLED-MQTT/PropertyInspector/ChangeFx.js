@@ -27,21 +27,14 @@ function tryConnection() {
 
 function showHideSettings(payload) {
     console.log("Show Hide Settings Called");
-    setCertificateSettings("none");
     setWebSocketSettings("none");
 
-    if (payload['connectionType'] == 2) {
-        setCertificateSettings("");
-    }
-    if (payload['connectionType'] == 3) {
+    var dropdown = document.getElementById('connectionType');
+    if (dropdown.value == 2) {
         setWebSocketSettings("");
     }
 }
 
-function setCertificateSettings(displayValue) {
-    var dvCertificateSettings = document.getElementById('dvCertificateSettings');
-    dvCertificateSettings.style.display = displayValue;
-}
 function setWebSocketSettings(displayValue) {
     var dvWebSocketSettings = document.getElementById('dvWebSocketSettings');
     dvWebSocketSettings.style.display = displayValue;

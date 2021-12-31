@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WLED_MQTT.Mqtt
+﻿namespace WLED_MQTT.Mqtt
 {
     public enum ConnectionType
     {
@@ -12,8 +6,6 @@ namespace WLED_MQTT.Mqtt
 
         SecureTCP = 1,
 
-        SecureTCPWithCertificate = 2,
-
-        WebSockets = 3,
+        WebSockets = 2,
     }
 }

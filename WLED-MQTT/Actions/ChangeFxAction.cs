@@ -1,5 +1,10 @@
 ﻿using BarRaider.SdTools;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Runtime;
+using System.Threading.Tasks;
 using WLED_MQTT.Mqtt;
 
 namespace WLED_MQTT.Actions
@@ -7,36 +12,40 @@ namespace WLED_MQTT.Actions
     [PluginActionId("com.ruemart.wledmqtt.changefx")]
     public sealed class ChangeFxAction : BaseMqttAction<ChangeFxAction.PluginSettings>
     {
-        public class PluginSettings : BasePluginSettings
+        public class PluginSettings : BaseSettings
         {
             public static PluginSettings CreateDefaultSettings()
             {
                 PluginSettings instance = new PluginSettings
                 {
-                    ConnectionType = ConnectionType.TCP,
-                    Port = 1883,
-                    Host = "localhost",
-                    CertificateFile = string.Empty,
-                    WebSocketServerAdress = string.Empty,
+                    Effects = WledEffectList.Create(),
+                    SelectedEffect = 0,
                     ClientId = Guid.NewGuid().ToString(),
-                    User = string.Empty,
-                    Password = string.Empty,
                 };
                 return instance;
             }
+
+            [JsonProperty(PropertyName = "effects")]
+            public List<WledEffect> Effects { get; set; }
+
+            [JsonProperty(PropertyName = "selectedEffect")]
+            public int SelectedEffect { get; set; }
         }
 
         public ChangeFxAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
-{
+            {
                 settings = PluginSettings.CreateDefaultSettings();
-                SaveSettings();
             }
             else
-{
+            {
                 settings = payload.Settings.ToObject<PluginSettings>();
             }
+
+            settings.Effects = WledEffectList.Create();
+            SaveSettings();
+            Connection.GetGlobalSettingsAsync();
         }
 
         protected override async void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e)
@@ -44,21 +53,20 @@ namespace WLED_MQTT.Actions
             switch (e.NewStatus)
             {
                 case MqttStatus.NotRunning:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Offline");
-                    Console.WriteLine($"MQTT Offline");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeFX: MQTT Offline");
+                    Console.WriteLine($"ChangeFX: MQTT Offline");
                     break;
                 case MqttStatus.Connecting:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Connecting");
-                    Console.WriteLine($"MQTT Connecting");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeFX: MQTT Connecting");
+                    Console.WriteLine($"ChangeFX: MQTT Connecting");
                     break;
                 case MqttStatus.Faulty:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Failed");
-                    Console.WriteLine($"MQTT Failed");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeFX: MQTT Failed");
+                    Console.WriteLine($"ChangeFX: MQTT Failed");
                     break;
                 case MqttStatus.Running:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Running");
-                    Console.WriteLine($"MQTT Running");
-                    await mqttClient.SendAsync("Test/FX", "HelloWorld");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeFX: MQTT Running");
+                    Console.WriteLine($"ChangeFX: MQTT Running");
                     break;
             }
         }
@@ -72,13 +80,22 @@ namespace WLED_MQTT.Actions
 
         public override void KeyReleased(KeyPayload payload)
         {
-            mqttClient.SendAsync("Test/FX", "HelloWorld!!!");
+            mqttClient.SendAsync(globalSettings.DeviceTopic + "/api", $"FX={settings.SelectedEffect}");
         }
 
         public override void OnTick() { }
 
-        public override void ReceivedSettings(ReceivedSettingsPayload payload) { }
+        public override async void ReceivedSettings(ReceivedSettingsPayload payload) 
+        {
+            Tools.AutoPopulateSettings(settings, payload.Settings);
+            await SaveSettings();
+            Tools.AutoPopulateSettings(globalSettings, payload.Settings);
+            await SaveGlobalSettings();
+        }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
+        protected override Task SaveSettings()
+        {
+            return Connection.SetSettingsAsync(JObject.FromObject(settings));
+        }
     }
 }

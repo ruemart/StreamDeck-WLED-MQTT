@@ -14,10 +14,13 @@
 </head>
 <body>
     <div class="sdpi-wrapper">
-
-        <div type="color" class="sdpi-item" id="dvColor">
-            <div class="sdpi-item-label">Color</div>
-            <input type="color" class="sdpi-item-value sdProperty" value="#FF0000" id="color" oninput="setSettings()">
+        <div style="display: inline;">
+            <div class="sdpi-item-label" style="float: left;">Color</div>
+            <button id="addColor" type="button" onclick="restoreColors()" float: left; margin-bottom: 5px;">Refresh</button>
+            <button id="addColor" type="button" onclick="addColor()" style="width: 25px; float: right; margin-bottom: 5px;">+</button>
+            <button id="removeColor" type="button" onclick="removeColor()" style="width: 25px; float: right; margin-bottom: 5px;">-</button>
+        </div>
+        <div id="colorGrid" style="display: flex; gap: 2px; width: 66%; flex-wrap: wrap; align-items: center; border: dotted; border-width: thin; border-color: dimgrey; margin-bottom: 5px; margin-left: 100px;">
         </div>
 
         <div class="sdpi-item">
@@ -38,7 +41,7 @@
                 </div>
             </div>
         </div>
-
+        <hr />
         <hr />
 
         <div class="sdpi-item">
@@ -46,19 +49,8 @@
             <select class="sdpi-item-value select sdProperty" id="connectionType" oninput="setSettings()">
                 <option value="0">TCP</option>
                 <option value="1">SecureTCP</option>
-                <option value="2">SecureTCP with Certificate</option>
-                <option value="3">WebSockets</option>
+                <option value="2">WebSockets</option>
             </select>
-        </div>
-        <div id="dvCertificateSettings" style="display:none">
-            <div class="sdpi-item" id="dvCertificateFile">
-                <div class="sdpi-item-label">Certificate*</div>
-                <div class="sdpi-item-group file" id="filepickergroup">
-                    <input class="sdpi-item-value sdProperty sdFile" type="file" id="certificateFile" accept=".pfx" oninput="setSettings()">
-                    <label class="sdpi-file-info " for="certificateFile" id="certificateFileName">No cert...</label>
-                    <label class="sdpi-file-label" for="certificateFile">Choose cert...</label>
-                </div>
-            </div>
         </div>
         <div id="dvWebSocketSettings" style="display:none">
             <div class="sdpi-item" id="dvWebSocketAdress">
@@ -69,15 +61,19 @@
         <hr />
         <div class="sdpi-item" id="dvHost">
             <div class="sdpi-item-label">Host*</div>
-            <input class="sdProperty" id="host" oninput="setSettings()">
+            <input class="sdProperty" id="host" value="localhost" oninput="setSettings()">
         </div>
         <div class="sdpi-item" id="dvPort">
             <div class="sdpi-item-label">Port</div>
-            <input class="sdpi-item-value sdProperty" placeholder="1883" value="" id="port" oninput="setSettings()">
+            <input class="sdpi-item-value sdProperty" value="1883" id="port" oninput="setSettings()">
+        </div>
+        <div class="sdpi-item" id="dvDeviceTopic">
+            <div class="sdpi-item-label">DeviceTopic*</div>
+            <input class="sdProperty" id="deviceTopic" value="wled/all" oninput="setSettings()">
         </div>
         <div class="sdpi-item" id="dvCommunicationTimeout">
             <div class="sdpi-item-label">Communication Timeout</div>
-            <input class="sdpi-item-value sdProperty" placeholder="0" value="" id="communicationTimeout" oninput="setSettings()">
+            <input class="sdpi-item-value sdProperty" value="0" id="communicationTimeout" oninput="setSettings()">
         </div>
         <hr />
         <div class="sdpi-item" id="dvUser">
@@ -92,15 +88,8 @@
             <div class="sdpi-item-label">ClientID</div>
             <input class="sdProperty" id="clientId" oninput="setSettings()">
         </div>
-        <div class="sdpi-item" id="dvTryConnection">
-            <div class="sdpi-item-label empty"></div>
-            <button class="sdpi-item-value" onclick="tryConnection()">Try Connection</button>
-        </div>
-        <details class="message">
-            <span id="spConnectionResult"></span>
-        </details>
-        <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
-
+        <div class="sdpi-info-label hidden" style="top: -1000px;" value="">Tooltip</div>
+        <input class="sdProperty" value="" id="colors" style="display: none;" oninput="restoreColors()">
     </div>
 </body>
 </html>

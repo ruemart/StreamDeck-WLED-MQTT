@@ -1,5 +1,7 @@
 ﻿using BarRaider.SdTools;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Threading.Tasks;
 using WLED_MQTT.Mqtt;
 
 namespace WLED_MQTT.Actions
@@ -7,20 +9,13 @@ namespace WLED_MQTT.Actions
     [PluginActionId("com.ruemart.wledmqtt.togglelight")]
     public sealed class ToggleLightAction : BaseMqttAction<ToggleLightAction.PluginSettings>
     {
-        public class PluginSettings : BasePluginSettings
+        public class PluginSettings : BaseSettings
         {
             public static PluginSettings CreateDefaultSettings()
             {
                 PluginSettings instance = new PluginSettings
                 {
-                    ConnectionType = ConnectionType.TCP,
-                    Port = 1883,
-                    Host = "localhost",
-                    CertificateFile = string.Empty,
-                    WebSocketServerAdress = string.Empty,
                     ClientId = Guid.NewGuid().ToString(),
-                    User = string.Empty,
-                    Password = string.Empty,
                 };
                 return instance;
             }
@@ -31,12 +26,14 @@ namespace WLED_MQTT.Actions
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 settings = PluginSettings.CreateDefaultSettings();
-                SaveSettings();
             }
             else
             {
                 settings = payload.Settings.ToObject<PluginSettings>();
             }
+
+            SaveSettings();
+            Connection.GetGlobalSettingsAsync();
         }
 
         protected override async void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e)
@@ -44,21 +41,20 @@ namespace WLED_MQTT.Actions
             switch (e.NewStatus)
             {
                 case MqttStatus.NotRunning:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Offline");
-                    Console.WriteLine($"MQTT Offline");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ToggleLight: MQTT Offline");
+                    Console.WriteLine($"ToggleLight: MQTT Offline");
                     break;
                 case MqttStatus.Connecting:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Connecting");
-                    Console.WriteLine($"MQTT Connecting");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ToggleLight: MQTT Connecting");
+                    Console.WriteLine($"ToggleLight: MQTT Connecting");
                     break;
                 case MqttStatus.Faulty:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Failed");
-                    Console.WriteLine($"MQTT Failed");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ToggleLight: MQTT Failed");
+                    Console.WriteLine($"ToggleLight: MQTT Failed");
                     break;
                 case MqttStatus.Running:
-                    Logger.Instance.LogMessage(TracingLevel.INFO, $"MQTT Running");
-                    Console.WriteLine($"MQTT Running");
-                    await mqttClient.SendAsync("Test/Toggle", "HelloWorld");
+                    Logger.Instance.LogMessage(TracingLevel.INFO, $"ToggleLight: MQTT Running");
+                    Console.WriteLine($"ToggleLight: MQTT Running");
                     break;
             }
         }
@@ -72,13 +68,22 @@ namespace WLED_MQTT.Actions
 
         public override void KeyReleased(KeyPayload payload)
         {
-            mqttClient.SendAsync("Test/Toggle", "HelloWorld!!!");
+            mqttClient.SendAsync(globalSettings.DeviceTopic, "T");
         }
 
         public override void OnTick() { }
 
-        public override void ReceivedSettings(ReceivedSettingsPayload payload) { }
+        public override async void ReceivedSettings(ReceivedSettingsPayload payload) 
+        {
+            Tools.AutoPopulateSettings(settings, payload.Settings);
+            await SaveSettings();
+            Tools.AutoPopulateSettings(globalSettings, payload.Settings);
+            await SaveGlobalSettings();
+        }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload) { }
+        protected override Task SaveSettings()
+        {
+            return Connection.SetSettingsAsync(JObject.FromObject(settings));
+        }
     }
 }
