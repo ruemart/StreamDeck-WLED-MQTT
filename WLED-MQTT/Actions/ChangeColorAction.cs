@@ -3,6 +3,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using System.Timers;
 using WLED_MQTT.Mqtt;
@@ -56,7 +58,8 @@ namespace WLED_MQTT.Actions
             public int ColorIndex { get; set; } = 0;
         }
 
-        private Timer timer;
+        private readonly Timer timer;
+        private MqttStatus currentMqttStatus;
 
         public ChangeColorAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
@@ -77,27 +80,25 @@ namespace WLED_MQTT.Actions
             Connection.GetGlobalSettingsAsync();
         }
 
-        protected override async void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e)
+        protected override void OnMqttClientStatusChanged(object sender, MqttClientStatusChangedEventHandler e)
         {
-            switch (e.NewStatus)
+            currentMqttStatus = e.NewStatus;
+            switch (currentMqttStatus)
             {
                 case MqttStatus.NotRunning:
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeColor: MQTT Offline");
-                    Console.WriteLine($"ChangeColor: MQTT Offline");
                     break;
                 case MqttStatus.Connecting:
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeColor: MQTT Connecting");
-                    Console.WriteLine($"ChangeColor: MQTT Connecting");
                     break;
                 case MqttStatus.Faulty:
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeColor: MQTT Failed");
-                    Console.WriteLine($"ChangeColor: MQTT Failed");
                     break;
                 case MqttStatus.Running:
                     Logger.Instance.LogMessage(TracingLevel.INFO, $"ChangeColor: MQTT Running");
-                    Console.WriteLine($"ChangeColor: MQTT Running");
                     break;
             }
+            ChangeKeyImage(currentMqttStatus);
         }
 
         public override void Dispose() { }
@@ -131,8 +132,16 @@ namespace WLED_MQTT.Actions
 
         public override async void ReceivedSettings(ReceivedSettingsPayload payload)
         {
+            var oldColors = settings.Colors;
             var oldRotationSpeed = settings.RotationSpeed;
             Tools.AutoPopulateSettings(settings, payload.Settings);
+
+            if (oldColors != settings.Colors)
+            {
+                settings.ColorList = new List<string>(settings.Colors.Split(','));
+                settings.ColorIndex = 0;
+                ChangeKeyImage(currentMqttStatus);
+            }
 
             if (oldRotationSpeed != settings.RotationSpeed)
             {
@@ -155,6 +164,40 @@ namespace WLED_MQTT.Actions
             await SaveGlobalSettings();
         }
 
+        protected override async void ChangeKeyImage(MqttStatus status)
+        {
+            using (var bmp = Tools.GenerateGenericKeyImage(out var graphics))
+            {
+                Image background = null;
+                switch (status)
+                {
+                    case MqttStatus.NotRunning:
+                        background = Image.FromFile(Path.Combine(Environment.CurrentDirectory, "Images", "ColorOffline@2x.png"));
+                        break;
+                    case MqttStatus.Connecting:
+                        background = Image.FromFile(Path.Combine(Environment.CurrentDirectory, "Images", "ColorConnecting@2x.png"));
+                        break;
+                    case MqttStatus.Faulty:
+                        background = Image.FromFile(Path.Combine(Environment.CurrentDirectory, "Images", "ColorError@2x.png"));
+                        break;
+                    case MqttStatus.Running:
+                        background = Image.FromFile(Path.Combine(Environment.CurrentDirectory, "Images", "ColorOnline@2x.png"));
+                        break;
+                }
+                graphics.DrawImage(background, 0, 0, bmp.Width, bmp.Height);
+
+                graphics.FillRectangle(new SolidBrush(ColorTranslator.FromHtml(settings.ColorList[settings.ColorIndex])), new Rectangle(bmp.Width / 2 - 38, bmp.Height / 2 - 25, 50, 50));
+                graphics.DrawRectangle(new Pen(Color.White, 2), new Rectangle(bmp.Width / 2 - 38, bmp.Height / 2 - 25, 50, 50));
+
+                var nextCol = settings.ColorIndex + 1 >= settings.ColorList.Count ? 0 : settings.ColorIndex + 1;
+                graphics.FillRectangle(new SolidBrush(ColorTranslator.FromHtml(settings.ColorList[nextCol])), new Rectangle(bmp.Width / 2 + 12, bmp.Height / 2, 25, 25));
+                graphics.DrawRectangle(new Pen(Color.White, 2), new Rectangle(bmp.Width / 2 + 12, bmp.Height / 2, 25, 25));
+
+                await Connection.SetImageAsync(bmp);
+                graphics.Dispose();
+            }
+        }
+
         protected override Task SaveSettings()
         {
             return Connection.SetSettingsAsync(JObject.FromObject(settings));
@@ -168,6 +211,7 @@ namespace WLED_MQTT.Actions
             {
                 settings.ColorIndex = 0;
             }
+            ChangeKeyImage(currentMqttStatus);
         }
 
         private void OnTimerElapsed(object sender, ElapsedEventArgs e)

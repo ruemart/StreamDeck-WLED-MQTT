@@ -93,6 +93,7 @@ namespace WLED_MQTT.Actions
 
         protected abstract Task SaveSettings();
 
+        protected abstract void ChangeKeyImage(MqttStatus status);
         private async Task SetupMqtt()
         {
             mqttClient = new MqttClient();
