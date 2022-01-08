@@ -56,3 +56,6 @@ The client is connected to the broker.
 ![ToggleError@2x](https://user-images.githubusercontent.com/18423789/148647561-53dd79cc-5c0b-433c-9100-fde8e1f0616d.png)
 
 The client could not connect to the broker.
+
+## Third Party
+This plugin uses the fantastic [StreamDeck-Tools](https://github.com/BarRaider/streamdeck-tools) project of BarRaider. Thank you for your awsome work!
